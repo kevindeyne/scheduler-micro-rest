@@ -1,11 +1,16 @@
 package be.inburgering.scheduler.domain;
 
-import be.inburgering.scheduler.utils.DateToString;
-import org.quartz.*;
-import org.quartz.impl.matchers.GroupMatcher;
-
 import java.util.Date;
 import java.util.List;
+
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerMetaData;
+import org.quartz.Trigger;
+import org.quartz.impl.matchers.GroupMatcher;
+
+import be.inburgering.scheduler.utils.DateToString;
 
 public class SchedulerStatus {
 
@@ -38,7 +43,9 @@ public class SchedulerStatus {
         Date lastFired = null;
         for (String groupName : scheduler.getJobGroupNames()) {
             for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
-                List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
+                
+            	@SuppressWarnings("unchecked")
+				List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
                 Date lastFireTime = triggers.get(0).getPreviousFireTime();
 
                 if(lastFired == null || lastFireTime.after(lastFired)) {

@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Scheduler</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<style>
+		input {
+			width: 20em;
+			padding: 0.5em;
+		}
+		button {
+			width: 10em;
+			padding: 0.5em;
+		}
+		label {
+			width: 4em;
+			display: inline-block;
+		}
+	</style>
+</head>
+<body>
+    <p>Toevoegen quartz job</p>
+    
+	<form action="/add" method="post">
+		<p><label>Service: </label><input type="text" name="service" placeholder="Interface naam, zonder bean" /></p>
+		<p><label>Method: </label><input type="text" name="method" placeholder="Methode naam, zonder haakjes" /></p>
+		<p><label>CRON: </label><input type="text" name="cron" placeholder="0 0/2 8-17 * * ?" /></p>
+		
+		<p style="padding-left:1em; color:gray;">Seconds (0, 0/10)<br>
+			Minutes (0/1, 0, *)<br>
+			Hours (8-17, 20, *)<br>
+			Day-of-Month (*)<br>
+			Month (*)<br>
+			Day-of-Week (?)
+		</p>
+		
+		<p><button type="submit">Toevoegen</button></p>
+	</form>
+    
+</body>
+</html>
