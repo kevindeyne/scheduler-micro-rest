@@ -27,8 +27,16 @@ Simpele UI om jobs toe te voegen.
 * http://localhost:3232/edit/testJob
 Simpele UI om jobs te editeren op basis van naam.
 
+* http://localhost:3232/pause/testJob
+Pauzeer jobs op basis van naam.
+
+* http://localhost:3232/resume/testJob
+Hervat jobs op basis van naam.
+
+* http://localhost:3232/delete/testJob
+Verwijder jobs op basis van naam.
+
 ## TODO
 
-* Delete/pause job via REST
 * Persistence koppeling
-* Foutverwerking
+* Foutverwerking indien geen DB, indien geen vertaalservice

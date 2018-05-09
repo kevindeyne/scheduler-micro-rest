@@ -1,8 +1,9 @@
 package be.inburgering.scheduler.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * UI Mapping class
+ * @author KDNBG75
+ */
 public class JobDetails {
 
 	private String service;

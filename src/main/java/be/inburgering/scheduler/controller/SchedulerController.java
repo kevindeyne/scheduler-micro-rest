@@ -1,20 +1,20 @@
 package be.inburgering.scheduler.controller;
 
-import java.util.ArrayList;
-import java.util.Date;
+import static be.inburgering.scheduler.utils.JobUtils.findJobKey;
+import static be.inburgering.scheduler.utils.JobUtils.findTriggerKey;
+import static be.inburgering.scheduler.utils.JobUtils.listJob;
+import static be.inburgering.scheduler.utils.JobUtils.listJobs;
+
 import java.util.List;
 
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
-import org.quartz.Trigger;
-import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import be.inburgering.scheduler.domain.ScheduledJob;
 import be.inburgering.scheduler.domain.SchedulerStatus;
-import be.inburgering.scheduler.jobs.Sampler;
 
 @RestController
 public class SchedulerController {
@@ -33,30 +33,34 @@ public class SchedulerController {
         return new SchedulerStatus(scheduler);
     }
 
-    @SuppressWarnings("unchecked")
 	@RequestMapping("/jobs")
     public List<ScheduledJob> getJobs() throws Exception {
-        List<ScheduledJob> scheduledJobs = new ArrayList<>();
-        for (String groupName : scheduler.getJobGroupNames()) {
-            for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
-                List<Trigger> triggers = (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
-                Date lastFireTime = triggers.get(0).getPreviousFireTime();
-                Date nextFireTime = triggers.get(0).getNextFireTime();
-                scheduledJobs.add(new ScheduledJob(lastFireTime, nextFireTime, jobKey.getName(), groupName));
-            }
-        }
-
-        return scheduledJobs;
-    }
-
-    @RequestMapping("/add-job")
-    public List<ScheduledJob> addJob() {
-        return new ArrayList<ScheduledJob>();
+        return listJobs(scheduler);
     }
     
-    @RequestMapping("/edit-job/{name}")
-    public List<ScheduledJob> addJob(@PathVariable String name) {
-        return new ArrayList<ScheduledJob>();
-    }
+    @RequestMapping("/pause/{name}")
+    public ScheduledJob pauseJob(@PathVariable String name) throws Exception {
+    	JobKey jobKey = findJobKey(scheduler, name);
+    	scheduler.pauseJob(jobKey);
+		scheduler.pauseTrigger(findTriggerKey(scheduler, jobKey));
 
+    	return listJob(scheduler, name);
+    }
+    
+    @RequestMapping("/resume/{name}")
+    public ScheduledJob resumeJob(@PathVariable String name) throws Exception {
+    	JobKey jobKey = findJobKey(scheduler, name);
+    	scheduler.resumeJob(jobKey);
+		scheduler.resumeTrigger(findTriggerKey(scheduler, jobKey));
+    	
+		return listJob(scheduler, name);
+    }
+    
+    @RequestMapping("/delete/{name}")
+    public List<ScheduledJob> deleteJob(@PathVariable String name) throws Exception {
+    	JobKey jobKey = findJobKey(scheduler, name);
+    	scheduler.deleteJob(jobKey);
+
+    	return getJobs();
+    }
 }

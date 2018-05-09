@@ -22,6 +22,8 @@ public class JobViaREST implements Job {
 	
 	public static final String PARAM_SERVICE = "service";
 	public static final String PARAM_METHOD = "method";
+	public static final String CRON = "cron";
+	public static final String NAME = "name";
 	
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -31,7 +33,7 @@ public class JobViaREST implements Job {
   	    try{
 	    	RestResult result = new RestTemplate()
 	    			.getForObject(
-	    					String.format("http://localhost/inburgering/remote-call/%1$s/%2$s", service, method),
+	    					String.format("http://wp2091/inburgering/remote-call/%1$s/%2$s", service, method), 
 	    					RestResult.class);
 	    	
 	        if(result == null || !result.getStatus().equals(_OK)){

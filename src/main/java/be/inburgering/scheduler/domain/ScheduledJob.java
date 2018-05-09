@@ -4,18 +4,24 @@ import be.inburgering.scheduler.utils.DateToString;
 
 import java.util.Date;
 
+/**
+ * JSON REST mapping class
+ * @author KDNBG75
+ */
 public class ScheduledJob {
 
+	private String name;
+    private String group;
+    private String status;
     private Date lastRun;
     private Date nextRun;
-    private String name;
-    private String group;
-
-    public ScheduledJob(Date lastRun, Date nextRun, String name, String group) {
+    
+    public ScheduledJob(Date lastRun, Date nextRun, String name, String group, String status) {
         this.lastRun = lastRun;
         this.nextRun = nextRun;
         this.name = name;
         this.group = group;
+        this.setStatus(status);
     }
 
     public String getGroup() {
@@ -49,4 +55,12 @@ public class ScheduledJob {
     public void setName(String name) {
         this.name = name;
     }
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 }
