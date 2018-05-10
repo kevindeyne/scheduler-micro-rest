@@ -1,14 +1,19 @@
 package be.inburgering.scheduler.domain;
 
-import be.inburgering.scheduler.utils.DateToString;
+import static be.inburgering.scheduler.utils.JobUtils.INSTANCE;
 
 import java.util.Date;
+
+import be.inburgering.scheduler.utils.DateToString;
+import be.inburgering.scheduler.utils.JobUtils;
 
 /**
  * JSON REST mapping class
  * @author KDNBG75
  */
 public class ScheduledJob {
+	
+	private static final String NOT_YET_TRIGGERED = "NOT YET TRIGGERED";
 
 	private String name;
     private String group;
@@ -16,13 +21,29 @@ public class ScheduledJob {
     private Date lastRun;
     private Date nextRun;
     
-    public ScheduledJob(Date lastRun, Date nextRun, String name, String group, String status) {
+    public ScheduledJob(Date lastRun, Date nextRun, String name, String group) {
         this.lastRun = lastRun;
         this.nextRun = nextRun;
         this.name = name;
         this.group = group;
-        this.setStatus(status);
+        this.status = getStatus(name, group);
     }
+
+	private String getStatus(String name, String group) {
+		String key = JobUtils.getJobStatusKey(group, name);
+		
+		State lastState = null;
+		if(key != null){
+			lastState = INSTANCE.lastExecutionState.get(key);
+			if(null == lastState){
+				return NOT_YET_TRIGGERED;
+			}
+		} else {
+			lastState = State.INVALID;
+		}
+		
+		return lastState.name();
+	}
 
     public String getGroup() {
         return group;

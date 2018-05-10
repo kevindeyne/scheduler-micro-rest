@@ -2,25 +2,31 @@ package be.inburgering.scheduler.utils;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-import org.quartz.Trigger.TriggerState;
 import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 
 import be.inburgering.scheduler.domain.ScheduledJob;
+import be.inburgering.scheduler.domain.State;
 
 public enum JobUtils {
 
     INSTANCE;
 	
-	private static final ScheduledJob DUMMY = new ScheduledJob(null, null, "No such job found", null, null);
+	private static final ScheduledJob DUMMY = new ScheduledJob(null, null, "No such job found", null);
+	
+	public Map<String, State> lastExecutionState = new HashMap<String, State>();
 	
 	/**
 	 * Lists the current running jobs as formatted {@link ScheduledJob} objects
@@ -108,32 +114,51 @@ public enum JobUtils {
     	return null;
     }
     
+    /**
+     * Sets the last execution status of a job based on its context
+     * @param context
+     * @param state object of {@link State}
+     */
+	public static void setLastExecutionStatus(JobExecutionContext context, State state) {
+		String key = getJobStatusKey(context.getJobDetail());
+		if(key != null) {
+			INSTANCE.lastExecutionState.put(key, state);
+		}
+	}
+    
+    /**
+     * Returns a key for map usage based on group and jobname
+     * @param group
+     * @param jobName
+     * @return jobName#group
+     */
+    public static String getJobStatusKey(String group, String jobName) {
+    	return jobName + "#" + group;
+    }
+    
+    /**
+     * Returns a key for map usage based on {@link JobDetail}
+     * @param jobDetail
+     * @return jobName#group or null
+     */
+    private static String getJobStatusKey(JobDetail jobDetail) {
+    	JobKey key = jobDetail.getKey();
+		if(key == null) return null;
+    	return getJobStatusKey(key.getGroup(), key.getName());
+    }
+    
 	private static ScheduledJob buildScheduledJob(Scheduler scheduler, Trigger trigger) {
 		if(trigger == null) return DUMMY;
 		
-		TriggerState triggerState = getTriggerState(scheduler, trigger);
 		JobKey jobKey = trigger.getJobKey();
 		
-		String state = triggerState.name();
 		String jobName = jobKey.getName();
 		String groupName = jobKey.getGroup();
 		
 		Date lastFireTime = trigger.getPreviousFireTime();
 		Date nextFireTime = trigger.getNextFireTime();
 				
-		return new ScheduledJob(lastFireTime, nextFireTime, jobName, groupName, state);
-	}
-
-	private static TriggerState getTriggerState(Scheduler scheduler, Trigger trigger) {
-		if(null != trigger) {			
-			try {
-				return scheduler.getTriggerState(trigger.getKey());
-			} catch (SchedulerException e) {
-				e.printStackTrace();
-			}	
-		}
-		
-		return TriggerState.ERROR;
+		return new ScheduledJob(lastFireTime, nextFireTime, jobName, groupName);
 	}
     
 	private static Set<JobKey> getJobsInGroup(Scheduler scheduler, String groupName) {

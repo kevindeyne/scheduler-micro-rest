@@ -1,5 +1,7 @@
 package be.inburgering.scheduler.jobs;
 
+import static be.inburgering.scheduler.utils.JobUtils.setLastExecutionStatus;
+
 import org.quartz.CronScheduleBuilder;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
@@ -14,16 +16,19 @@ import org.springframework.web.client.RestTemplate;
 
 import be.inburgering.scheduler.domain.JobDetails;
 import be.inburgering.scheduler.domain.RestResult;
+import be.inburgering.scheduler.domain.State;
 
 public class JobViaREST implements Job {
 	
-	private static final String _OK = "ok";
-	private final boolean retryImmediately = false;
+	private static final String REMOTE_CALL_LOCATION = "http://localhost/inburgering/remote-call/%1$s/%2$s";
+	
+	private final boolean retryImmediately = false; //also see misfire config later on
 	
 	public static final String PARAM_SERVICE = "service";
 	public static final String PARAM_METHOD = "method";
 	public static final String CRON = "cron";
 	public static final String NAME = "name";
+	private static final String _OK = "ok";
 	
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -33,13 +38,17 @@ public class JobViaREST implements Job {
   	    try{
 	    	RestResult result = new RestTemplate()
 	    			.getForObject(
-	    					String.format("http://wp2091/inburgering/remote-call/%1$s/%2$s", service, method), 
+	    					String.format(REMOTE_CALL_LOCATION, service, method), 
 	    					RestResult.class);
 	    	
 	        if(result == null || !result.getStatus().equals(_OK)){
+	        	setLastExecutionStatus(context, State.ERROR);	        	
 	        	throw jobException(null, service, method);
+	        } else {
+	        	setLastExecutionStatus(context, State.OK);
 	        }
   	    }catch(Throwable e){
+  	    	setLastExecutionStatus(context, State.ERROR);
   	    	throw jobException(e, service, method);
 	    }
     }
@@ -58,7 +67,9 @@ public class JobViaREST implements Job {
 	
     public static void build(Scheduler scheduler, JobDetails job) throws SchedulerException {
         Trigger trigger = TriggerBuilder.newTrigger().startNow()
-        		.withSchedule(CronScheduleBuilder.cronSchedule(job.getCron()))
+        		.withSchedule(CronScheduleBuilder
+        				.cronSchedule(job.getCron())
+        				.withMisfireHandlingInstructionDoNothing()) //we don't really want to keep pushing a crashing server with constant misfires, most jobs should repeat anyway, so its just for the next cycle
         		.build();
 
         JobDetail newJob = JobBuilder.newJob(JobViaREST.class)

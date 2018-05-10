@@ -5,6 +5,9 @@ public enum State {
     SHUTDOWN,
     STANDBY,
     STARTED,
-    ERROR
+    
+    ERROR, 
+    OK, 
+    INVALID
 
 }
