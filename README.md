@@ -36,7 +36,12 @@ Hervat jobs op basis van naam.
 * http://localhost:3232/delete/testJob
 Verwijder jobs op basis van naam.
 
-## TODO
+## Extra config still required
 
-* Persistence koppeling
-* Foutverwerking indien geen DB, indien geen vertaalservice
+Add the following to a file named application-prd.properties
+```
+spring.quartz.properties.org.quartz.dataSource.qrtz_ds.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver
+spring.quartz.properties.org.quartz.dataSource.qrtz_ds.URL=jdbc:sqlserver://localhost;databaseName=[DATABASE NAME]
+spring.quartz.properties.org.quartz.dataSource.qrtz_ds.user=[USERNAME]
+spring.quartz.properties.org.quartz.dataSource.qrtz_ds.password=[PASSWORD]
+```
